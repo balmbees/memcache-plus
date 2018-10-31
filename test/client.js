@@ -505,7 +505,7 @@ describe('Client', function() {
         });
 
         describe('getMulti', function() {
-            it.only('works', function() {
+            it('works', function() {
                 cache = new Client([
                     'localhost:11211',
                     'localhost:11212',
