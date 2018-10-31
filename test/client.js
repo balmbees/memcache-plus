@@ -505,23 +505,31 @@ describe('Client', function() {
         });
 
         describe('getMulti', function() {
-            it('exists', function() {
-                cache.should.have.property('getMulti');
-            });
-
             it.only('works', function() {
-                var key1 = getKey(), key2 = getKey(),
-                    val1 = chance.word(), val2 = chance.word();
+                cache = new Client([
+                    'localhost:11211',
+                    'localhost:11212',
+                    'localhost:11213',
+                ]);
 
-                return Promise.all([cache.set(key1, val1), cache.set(key2, val2)])
+                const count = 10;
+                const keys = _.times(count, (i => getKey()));
+                const values = _.times(count, (i => `${i}`));
+
+                return Promise.all(
+                        _.times(count, (index) => {
+                            return cache.set(keys[index], values[index])
+                        })
+                    )
                     .then(function() {
-                        return cache.getMulti([key1, key2]);
+                        return cache.getMulti(keys);
                     })
                     .then(function(vals) {
-                        return vals;
-                        // vals.should.be.an('object');
-                        // vals[key1].should.equal(val1);
-                        // vals[key2].should.equal(val2);
+                        vals.should.be.deep.eq(
+                            _.fromPairs(
+                                _.times(count, (i => [keys[i], values[i]]))
+                            )
+                        );
                     });
             });
 
