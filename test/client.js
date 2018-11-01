@@ -278,7 +278,7 @@ describe('Client', function() {
                                 return cache.get(key, { compressed: true });
                             })
                             .then(function(v) {
-                                expect(v).to.be.null;
+                                expect(v).to.be.undefined;
                             });
             });
         });
@@ -477,13 +477,13 @@ describe('Client', function() {
             it('with Promise', function() {
                 return cache.get(chance.guid())
                     .then(function(v) {
-                        expect(v).to.be.null;
+                        expect(v).to.be.undefined;
                     });
             });
 
             it('with Callback', function(done) {
                 cache.get(chance.word(), function(err, response) {
-                    expect(response).to.be.null;
+                    expect(response).to.be.undefined;
                     done(err);
                 });
             });
@@ -583,7 +583,7 @@ describe('Client', function() {
                         return cache.get(key);
                     })
                     .then(function(v) {
-                        expect(v).to.be.null;
+                        expect(v).to.be.undefined;
                     });
             });
         });
@@ -697,7 +697,7 @@ describe('Client', function() {
                     return cache.get(key);
                 })
                 .then(function(v) {
-                    expect(v).to.be.null;
+                    expect(v).to.be.undefined;
                 });
         });
 
@@ -732,8 +732,8 @@ describe('Client', function() {
                     return Promise.all([cache.get(key1), cache.get(key2)]);
                 })
                 .spread(function(v1, v2) {
-                    expect(v1).to.be.null;
-                    expect(v2).to.be.null;
+                    expect(v1).to.be.undefined;
+                    expect(v2).to.be.undefined;
                     return;
                 });
         });
@@ -947,7 +947,7 @@ describe('Client', function() {
                          return cache.get(key);
                      })
                      .then(function (v) {
-                         expect(v).to.equal(null);
+                         expect(v).to.equal(undefined);
                      });
             });
 
@@ -973,7 +973,7 @@ describe('Client', function() {
                          return cache.get(key);
                      })
                      .then(function (v) {
-                         expect(v).to.equal(null);
+                         expect(v).to.equal(undefined);
                      });
             });
         });
@@ -1217,7 +1217,7 @@ describe('Client', function() {
         });
     });
 
-    describe('cachedump', function () {
+    xdescribe('cachedump', function () {
         var cache;
         beforeEach(function() {
             cache = new Client();
