@@ -1,6 +1,6 @@
 {
   "name": "@vingle/memcache-plus",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Better memcache for node",
   "main": "index.js",
   "scripts": {
