@@ -203,7 +203,7 @@ describe('Client', function() {
                     val.should.equal(v);
                 });
         });
-    
+
         it('works with very large values', function() {
             var key = getKey(), val = chance.word({ length: 1000000 });
 
@@ -256,21 +256,6 @@ describe('Client', function() {
                             .then(function(v) {
                                 val.should.equal(v);
                             });
-            });
-
-            it('getMulti works with compression', function() {
-                var key1 = getKey(), key2 = getKey(),
-                    val1 = chance.word(), val2 = chance.word();
-
-                return Promise.all([cache.set(key1, val1, { compressed: true }), cache.set(key2, val2, { compressed: true })])
-                    .then(function() {
-                        return cache.getMulti([key1, key2], { compressed: true });
-                    })
-                    .then(function(vals) {
-                        vals.should.be.an('object');
-                        vals[key1].should.equal(val1);
-                        vals[key2].should.equal(val2);
-                    });
             });
 
             it.skip('get works with a callback', function(done) {
@@ -505,37 +490,31 @@ describe('Client', function() {
         });
 
         describe('getMulti', function() {
-            it('exists', function() {
-                cache.should.have.property('getMulti');
-            });
-
             it('works', function() {
-                var key1 = getKey(), key2 = getKey(),
-                    val1 = chance.word(), val2 = chance.word();
+                cache = new Client([
+                    'localhost:11211',
+                    'localhost:11212',
+                    'localhost:11213',
+                ]);
 
-                return Promise.all([cache.set(key1, val1), cache.set(key2, val2)])
+                const count = 10;
+                const keys = _.times(count, (i => getKey()));
+                const values = _.times(count, (i => `${i}`));
+
+                return Promise.all(
+                        _.times(count, (index) => {
+                            return cache.set(keys[index], values[index])
+                        })
+                    )
                     .then(function() {
-                        return cache.getMulti([key1, key2]);
+                        return cache.getMulti(keys);
                     })
                     .then(function(vals) {
-                        vals.should.be.an('object');
-                        vals[key1].should.equal(val1);
-                        vals[key2].should.equal(val2);
-                    });
-            });
-
-            it('get with array of keys delegates to getMulti', function() {
-                var key1 = getKey(), key2 = getKey(),
-                    val1 = chance.word(), val2 = chance.word();
-
-                return Promise.all([cache.set(key1, val1), cache.set(key2, val2)])
-                    .then(function() {
-                        return cache.get([key1, key2]);
-                    })
-                    .then(function(vals) {
-                        vals.should.be.an('object');
-                        vals[key1].should.equal(val1);
-                        vals[key2].should.equal(val2);
+                        vals.should.be.deep.eq(
+                            _.fromPairs(
+                                _.times(count, (i => [keys[i], values[i]]))
+                            )
+                        );
                     });
             });
 
@@ -548,39 +527,40 @@ describe('Client', function() {
                         return cache.getMulti([key1, key2]);
                     })
                     .then(function(vals) {
-                        vals.should.be.an('object');
-                        vals[key1].should.equal(val);
-                        expect(vals[key2]).to.equal(null);
+                        vals.should.be.deep.eq({
+                            [key1]: val,
+                            [key2]: undefined
+                        });
                     });
             });
 
             it('works if all values not found', function() {
-                var key = getKey(), key2 = getKey(), key3 = getKey(),
-                    val = chance.word();
+                var key1 = getKey(), key2 = getKey(), key3 = getKey(),
+                    val1 = chance.word();
 
-                return cache.set(key, val)
+                return cache.set(key1, val1)
                     .then(function() {
                         return cache.getMulti([key2, key3]);
                     })
                     .then(function(vals) {
-                        vals.should.be.an('object');
-                        _.size(vals).should.equal(2);
-                        expect(vals[key2]).to.equal(null);
-                        expect(vals[key3]).to.equal(null);
+                        vals.should.be.deep.eq({
+                            [key2]: undefined,
+                            [key3]: undefined
+                        });
                     });
             });
 
             it('works if all values not found with callback', function(done) {
-                var key = getKey(), key2 = getKey(), key3 = getKey(),
-                    val = chance.word();
+                var key1 = getKey(), key2 = getKey(), key3 = getKey(),
+                    val1 = chance.word();
 
-                cache.set(key, val)
+                cache.set(key1, val1)
                     .then(function() {
                         cache.getMulti([key2, key3], function(err, vals) {
-                            vals.should.be.an('object');
-                            _.size(vals).should.equal(2);
-                            expect(vals[key2]).to.equal(null);
-                            expect(vals[key3]).to.equal(null);
+                            vals.should.be.deep.eq({
+                                [key2]: undefined,
+                                [key3]: undefined
+                            });
                             done(err);
                         });
                     });
@@ -662,7 +642,7 @@ describe('Client', function() {
                         })
                         .spread(function(v, cas) {
                             var invalidCas;
-                            
+
                             do {
                               invalidCas = chance.string({pool: '0123456789', length: 15});
                             } while (invalidCas === cas);
@@ -684,7 +664,7 @@ describe('Client', function() {
                             return cache.gets(key);
                         })
                         .spread(function(v, cas) {
-                            
+
                             return cache.cas(invalidKey, updatedVal, cas);
 
                         }).then(function(success) {
@@ -1301,5 +1281,5 @@ describe('Client', function() {
 
         // Clean up all of the keys we created
         return cache.deleteMulti(keys);
-    });    
+    });
 });
